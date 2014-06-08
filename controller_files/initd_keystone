@@ -1,0 +1,47 @@
+#!/bin/sh
+NAME=keystone
+DESC="Keystone Authentication"
+USERGROUP="keystone:keystone"
+BINARY="/usr/bin/python /usr/local/bin/keystone-all"
+
+#Helper functions
+start() {
+        start-stop-daemon --start --background --quiet --make-pidfile \
+                --pidfile /var/run/$NAME.pid --chuid $USERGROUP \
+                --exec $BINARY
+}
+
+stop() {
+        start-stop-daemon --stop --pidfile /var/run/$NAME.pid \
+                --exec $BINARY --retry 30 --signal KILL
+}
+
+case "$1" in
+  start)
+        echo -n "Starting $DESC: "
+        start
+        echo "$NAME."
+        ;;
+  stop)
+        echo -n "Stopping $DESC: "
+        stop
+        echo "$NAME."
+        ;;
+  restart)
+        echo -n "Restarting $DESC: "
+        set +e
+        stop
+        set -e
+        sleep 1
+        start
+
+        echo "$NAME."
+        ;;
+  *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop|restart}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

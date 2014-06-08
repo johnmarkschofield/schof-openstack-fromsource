@@ -1,0 +1,31 @@
+---
+- hosts: controller
+  vars:
+    MYSQL_ROOT: "{{ lookup('env','DB_ROOT') }}"
+    GLANCE_DBPWD: "{{ lookup('env','GLANCE_DBPASS') }}"
+    RABBIT_PWD: "{{ lookup('env','RABBIT_PASS') }}"
+    GLANCE_PWD: "{{ lookup('env','GLANCE_PASS') }}"
+
+  tasks:
+  - apt: update_cache=yes cache_valid_time=21600
+  - command: creates=/root/glance git clone https://github.com/openstack/glance.git /root/glance
+  - command: chdir=/root/glance git checkout stable/icehouse
+  - apt: pkg=libffi-dev
+  - command: chdir=/root/glance pip install -r requirements.txt
+  - command: chdir=/root/glance python setup.py install
+  - copy: src=etc/glance dest=/etc
+  - template: src=controller_files/glance-api.conf dest=/etc/glance/glance-api.conf
+  - template: src=controller_files/glance-registry.conf dest=/etc/glance/glance-registry.conf
+  - file: state=absent path=/var/lib/glance/glance.sqlite
+  - mysql_db: name=glance login_user=root login_password={{MYSQL_ROOT}}
+  - mysql_user: name=glance host=localhost password={{GLANCE_DBPWD}} priv=glance.*:all login_user=root login_password={{MYSQL_ROOT}}
+  - mysql_user: name=glance host='%' password={{GLANCE_DBPWD}} priv=glance.*:all login_user=root login_password={{MYSQL_ROOT}}
+  - user: name=glance
+  - file: path=/var/log/glance state=directory owner=glance group=glance mode=0755
+  - file: path=/var/lib/glance state=directory owner=glance group=glance mode=0755
+  - file: path=/var/lib/glance/images state=directory owner=glance group=glance mode=0755
+  - shell: creates=/root/.glancedb1 su -s /bin/sh -c "glance-manage db_sync" glance && touch /root/.glancedb1
+  - copy: src=controller_files/initd_glanceapi dest=/etc/init.d/glanceapi owner=root group=root mode=0755
+  - service: name=glanceapi enabled=yes state=restarted
+  - copy: src=controller_files/initd_glanceregistry dest=/etc/init.d/glanceregistry owner=root group=root mode=0755
+  - service: name=glanceregistry enabled=yes state=restarted

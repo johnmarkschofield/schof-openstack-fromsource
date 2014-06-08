@@ -3,22 +3,53 @@
   vars:
     MYSQL_ROOT: "{{ lookup('env','DB_ROOT') }}"
     RABBITMQ_PASS: "{{ lookup('env','RABBIT_PASS') }}"
+    KEYSTONE_DBPASSWD: "{{ lookup('env','KEYSTONE_DBPASS')}}"
+    KEYSTONE_ADMIN_TOKEN: "{{ lookup('env','ADMIN_TOKEN')}}"
 
   tasks:
-  - copy: src=controller_hosts dest=/etc/hosts
+
+  # Set up keystone
+
+  - copy: src=controller_files/controller_hosts dest=/etc/hosts
   - hostname: name=controller
   - apt: pkg=mysql-server
   - apt: pkg=mysql-client
   - apt: pkg=python-mysqldb
-  - copy: src=my.cnf dest=/etc/mysql/my.cnf
+  - copy: src=controller_files/my.cnf dest=/etc/mysql/my.cnf
     notify: restartmysqld
   - shell: creates=/root/.mysql_step1 /usr/bin/mysql_install_db && touch /root/.mysql_step1
   - apt: pkg=expect
-  - template: src=mysql_secure.j2 dest=/root/mysql_secure.sh owner=root group=root mode=0700
+  - template: src=controller_files/mysql_secure.j2 dest=/root/mysql_secure.sh owner=root group=root mode=0700
   - shell: creates=/root/.mysql_step2 /root/mysql_secure.sh
   - shell: rm /root/mysql_secure.sh
   - apt: pkg=rabbitmq-server
   - shell: rabbitmqctl change_password guest {{ RABBITMQ_PASS }}
   - command: creates=/root/keystone git clone https://github.com/openstack/keystone.git /root/keystone
   - command: chdir=/root/keystone git checkout stable/icehouse
+  - apt: pkg=gcc
+  - apt: pkg=python-dev
+  - apt: pkg=libxml2-dev
+  - apt: pkg=libxslt1-dev
+  - command: chdir=/root/keystone pip install -r requirements.txt
+  - command: chdir=/root/keystone python setup.py install
+  - copy: src=etc/keystone dest=/etc
+  - template: src=controller_files/keystone.conf dest=/etc/keystone/keystone.conf
+    notify: keystone
+  - file: state=absent path=/var/lib/keystone/keystone.db
+  - mysql_db: name=keystone login_user=root login_password={{MYSQL_ROOT}}
+  - mysql_user: name=keystone host=localhost password={{KEYSTONE_DBPASSWD}} priv=keystone.*:all login_user=root login_password={{MYSQL_ROOT}}
+  - mysql_user: name=keystone host='%' password={{KEYSTONE_DBPASSWD}} priv=keystone.*:all login_user=root login_password={{MYSQL_ROOT}}
+  - user: name=keystone 
+  - shell: creates=/root/.keystonedb1 su -s /bin/sh -c "keystone-manage db_sync" keystone && touch /root/.keystonedb1
+  - file: path=/var/log/keystone state=directory owner=keystone group=keystone mode=0755
+  - copy: src=controller_files/initd_keystone dest=/etc/init.d/keystone owner=root group=root mode=0755
+  - service: name=keystone enabled=yes state=restarted
+  - cron: name="purge keystone tokens" special_time=hourly user=keystone job="/usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1"
 
+
+
+
+
+  handlers:
+  - name: keystone
+    service: name=keystone state=restarted
