@@ -1,0 +1,24 @@
+
+- hosts: controller
+  vars:
+    MYSQL_ROOT: "{{ lookup('env','DB_ROOT') }}"
+    RABBITMQ_PASS: "{{ lookup('env','RABBIT_PASS') }}"
+
+  tasks:
+  - copy: src=controller_hosts dest=/etc/hosts
+  - hostname: name=controller
+  - apt: pkg=mysql-server
+  - apt: pkg=mysql-client
+  - apt: pkg=python-mysqldb
+  - copy: src=my.cnf dest=/etc/mysql/my.cnf
+    notify: restartmysqld
+  - shell: creates=/root/.mysql_step1 /usr/bin/mysql_install_db && touch /root/.mysql_step1
+  - apt: pkg=expect
+  - template: src=mysql_secure.j2 dest=/root/mysql_secure.sh owner=root group=root mode=0700
+  - shell: creates=/root/.mysql_step2 /root/mysql_secure.sh
+  - shell: rm /root/mysql_secure.sh
+  - apt: pkg=rabbitmq-server
+  - shell: rabbitmqctl change_password guest {{ RABBITMQ_PASS }}
+  - command: creates=/root/keystone git clone https://github.com/openstack/keystone.git /root/keystone
+  - command: chdir=/root/keystone git checkout stable/icehouse
+

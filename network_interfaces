@@ -1,0 +1,49 @@
+# Used by ifup(8) and ifdown(8). See the interfaces(5) manpage or
+# /usr/share/doc/ifupdown/examples for more information.
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# Label public
+auto eth0
+iface eth0 inet static
+    address 23.253.111.45
+    netmask 255.255.255.0
+    gateway 23.253.111.1
+iface eth0 inet6 static
+    address 2001:4800:7817:101:adbb:e94c:ff05:90ff
+    netmask 64
+    gateway fe80::def
+    dns-nameservers 72.3.128.241 72.3.128.240
+
+# Label private
+auto eth1
+iface eth1 inet static
+    address 10.208.137.250
+    netmask 255.255.224.0
+    dns-nameservers 72.3.128.241 72.3.128.240
+    post-up route add -net 10.176.0.0 netmask 255.240.0.0 gw 10.208.128.1 || true
+    pre-down route del -net 10.176.0.0 netmask 255.240.0.0 gw 10.208.128.1 || true
+    post-up route add -net 10.208.0.0 netmask 255.240.0.0 gw 10.208.128.1 || true
+    pre-down route del -net 10.208.0.0 netmask 255.240.0.0 gw 10.208.128.1 || true
+
+# Label schof-openstack-instancetunnels
+auto eth2
+iface eth2 inet static
+    address 192.168.15.1
+    netmask 255.255.255.0
+    dns-nameservers 72.3.128.241 72.3.128.240
+
+# Label schof-openstack-management
+auto eth3
+iface eth3 inet static
+    address 192.168.14.2
+    netmask 255.255.255.0
+    dns-nameservers 72.3.128.241 72.3.128.240
+
+# Label skylab #### special configuration
+auto eth4
+iface eth4 inet manual
+    up ip link set dev eth4 up
+    down ip link set dev eth4 down
+    

@@ -1,0 +1,63 @@
+---
+- hosts: all
+
+  tasks:
+  - apt: update_cache=yes cache_valid_time=21600
+  - apt: pkg=update-notifier-common
+  - name: Upgrade Everything
+    apt: upgrade=dist
+  - apt: pkg=emacs23-nox
+  - apt: pkg=curl
+  - apt: pkg=ntp
+  - apt: pkg=git
+  - apt: pkg=tree
+  - apt: pkg=screen
+  - apt: pkg=linux-image-generic-lts-saucy
+  - apt: pkg=linux-headers-generic-lts-saucy
+  - apt: pkg=python-pip
+  - apt: pkg=python-setuptools
+
+  - name: check if a reboot is required
+    shell: "[ -f /var/run/reboot-required ]"
+    failed_when: False
+    register: reboot_required
+    changed_when: reboot_required.rc == 0
+    notify: reboot
+
+  handlers:
+  - name: reboot
+    command: /sbin/reboot
+
+  - name: restartnetwork
+    service: name=networking state=restarted
+
+  - name: restartntp
+    service: name=ntp state=restarted
+
+  - name: restartmysqld
+    service: name=mysql state=restarted
+
+
+
+- include: controller.yml
+
+
+
+- hosts: network
+  tasks:
+  - copy: src=network_hosts dest=/etc/hosts
+  - hostname: name=network
+  - copy: src=network_interfaces dest=/etc/network/interfaces
+    notify: restartnetwork
+  - copy: src=ntp.conf dest=/etc/ntp.conf
+    notify: restartntp
+  - apt: pkg=python-mysqldb
+
+
+- hosts: compute
+  tasks:
+  - copy: src=compute_hosts dest=/etc/hosts
+  - hostname: name=compute01
+  - copy: src=ntp.conf dest=/etc/ntp.conf
+    notify: restartntp
+  - apt: pkg=python-mysqldb
