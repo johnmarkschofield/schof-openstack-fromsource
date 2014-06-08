@@ -1,0 +1,17 @@
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+127.0.0.1 localhost
+2001:4800:7815:103:adbb:e94c:ff05:2cf	schof-openstack-compute01
+192.168.14.3	schof-openstack-compute01
+10.208.39.163	schof-openstack-compute01
+23.253.71.205	schof-openstack-compute01
+192.168.15.2	schof-openstack-compute01
+
+
+192.168.14.1 controller
+192.168.14.2 network
+192.168.14.3 compute01
