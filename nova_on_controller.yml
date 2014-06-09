@@ -9,22 +9,22 @@
     NOVA_PWD: "{{ lookup('env','NOVA_PASS') }}"
 
   tasks:
-  # - apt: update_cache=yes cache_valid_time=21600
-  # - command: creates=/root/nova git clone https://github.com/openstack/nova.git /root/nova
-  # - command: chdir=/root/nova git checkout stable/icehouse
-  # - command: chdir=/root/nova pip install -r requirements.txt
-  # - command: chdir=/root/nova python setup.py install
-  # - copy: src=etc/nova dest=/etc
+  - apt: update_cache=yes cache_valid_time=21600
+  - command: creates=/root/nova git clone https://github.com/openstack/nova.git /root/nova
+  - command: chdir=/root/nova git checkout stable/icehouse
+  - command: chdir=/root/nova pip install -r requirements.txt
+  - command: chdir=/root/nova python setup.py install
+  - copy: src=etc/nova dest=/etc
   - template: src=controller_files/nova.conf dest=/etc/nova/nova.conf
-  # - user: name=nova
-  # - file: path=/var/log/nova state=directory owner=nova group=nova mode=0755
-  # - file: path=/var/lib/nova state=directory owner=nova group=nova mode=0755
-  # - file: path=/var/lib/nova/volumes state=directory owner=nova group=nova mode=0755
-  # - file: path=/var/lock/nova state=directory owner=nova group=nova mode=0755
-  # - file: state=absent path=/var/lib/nova/nova.sqlite
-  # - mysql_db: name=nova login_user=root login_password={{MYSQL_ROOT}}
-  # - mysql_user: name=nova host=localhost password={{NOVA_DBPWD}} priv=nova.*:all login_user=root login_password={{MYSQL_ROOT}}
-  # - mysql_user: name=nova host='%' password={{NOVA_DBPWD}} priv=nova.*:all login_user=root login_password={{MYSQL_ROOT}}
+  - user: name=nova
+  - file: path=/var/log/nova state=directory owner=nova group=nova mode=0755
+  - file: path=/var/lib/nova state=directory owner=nova group=nova mode=0755
+  - file: path=/var/lib/nova/volumes state=directory owner=nova group=nova mode=0755
+  - file: path=/var/lock/nova state=directory owner=nova group=nova mode=0755
+  - file: state=absent path=/var/lib/nova/nova.sqlite
+  - mysql_db: name=nova login_user=root login_password={{MYSQL_ROOT}}
+  - mysql_user: name=nova host=localhost password={{NOVA_DBPWD}} priv=nova.*:all login_user=root login_password={{MYSQL_ROOT}}
+  - mysql_user: name=nova host='%' password={{NOVA_DBPWD}} priv=nova.*:all login_user=root login_password={{MYSQL_ROOT}}
   - shell: creates=/root/.novadb1 su -s /bin/sh -c "nova-manage db sync" nova && touch /root/.novadb1
 
   - copy: src=controller_files/sudoers dest=/etc/sudoers owner=root group=root mode=0640
