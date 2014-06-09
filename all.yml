@@ -6,12 +6,12 @@
   - apt: pkg=update-notifier-common
   - name: Upgrade Everything
     apt: upgrade=dist
-  - apt: pkg=emacs23-nox
+  # - apt: pkg=emacs23-nox
   - apt: pkg=curl
   - apt: pkg=ntp
   - apt: pkg=git
-  - apt: pkg=tree
-  - apt: pkg=screen
+  # - apt: pkg=tree
+  # - apt: pkg=screen
   - apt: pkg=linux-image-generic-lts-saucy
   - apt: pkg=linux-headers-generic-lts-saucy
   - apt: pkg=python-pip

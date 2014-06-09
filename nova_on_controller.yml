@@ -14,7 +14,7 @@
   - command: chdir=/root/nova git checkout stable/icehouse
   - command: chdir=/root/nova pip install -r requirements.txt
   - command: chdir=/root/nova python setup.py install
-  - copy: src=etc/nova dest=/etc
+  - copy: src=controller_etc/nova dest=/etc
   - template: src=controller_files/nova.conf dest=/etc/nova/nova.conf
   - user: name=nova
   - file: path=/var/log/nova state=directory owner=nova group=nova mode=0755

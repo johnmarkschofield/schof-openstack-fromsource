@@ -32,7 +32,7 @@
   - apt: pkg=libxslt1-dev
   - command: chdir=/root/keystone pip install -r requirements.txt
   - command: chdir=/root/keystone python setup.py install
-  - copy: src=etc/keystone dest=/etc
+  - copy: src=controller_etc/keystone dest=/etc
   - template: src=controller_files/keystone.conf dest=/etc/keystone/keystone.conf
     notify: keystone
   - file: state=absent path=/var/lib/keystone/keystone.db

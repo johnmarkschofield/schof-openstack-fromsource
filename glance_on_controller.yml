@@ -13,7 +13,7 @@
   - apt: pkg=libffi-dev
   - command: chdir=/root/glance pip install -r requirements.txt
   - command: chdir=/root/glance python setup.py install
-  - copy: src=etc/glance dest=/etc
+  - copy: src=controller_etc/glance dest=/etc
   - template: src=controller_files/glance-api.conf dest=/etc/glance/glance-api.conf
   - template: src=controller_files/glance-registry.conf dest=/etc/glance/glance-registry.conf
   - file: state=absent path=/var/lib/glance/glance.sqlite
