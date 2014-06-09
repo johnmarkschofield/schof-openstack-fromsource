@@ -18,4 +18,6 @@ You should be in a Python virtualenv for all of these steps.
 4. bin/install_local_clients.bash
 5. ansible-playbook -i hosts glance_on_controller.yml
 6. source admin-openrc.sh
-6. bin/configure_glance.bash
+7. bin/configure_glance.bash
+8. bin/configure_nova.bash
+8. ansible-playbook -i hosts nova_on_controller.yml
