@@ -8,7 +8,7 @@ set timeout 10
 spawn mysql_secure_installation
 
 expect \"Enter current password for root (enter for none):\"
-send \"$MYSQL\r\"
+send \"$MYSQL_ROOT_PASSWORD\r\"
 
 expect \"Change the root password?\"
 send \"n\r\"
@@ -29,4 +29,4 @@ expect eof
 ")
 
 echo "$SECURE_MYSQL"
-touch /root/.mysql_step2
+touch /root/.mysql_step3

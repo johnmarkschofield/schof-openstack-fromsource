@@ -1,5 +1,5 @@
 ---
-- hosts: compute
+- hosts: compute01
   vars:
     MYSQL_ROOT: "{{ lookup('env','DB_ROOT') }}"
     GLANCE_DBPWD: "{{ lookup('env','GLANCE_DBPASS') }}"
@@ -9,8 +9,10 @@
     NOVA_PWD: "{{ lookup('env','NOVA_PASS') }}"
 
   tasks:
-    - apt: nova-compute-qemu
-    - apt: python-guestfs
+    - apt: pkg=nova-compute-qemu
+    - apt: pkg=python-guestfs
+    - shell: dpkg-statoverride  --update --add root root 0644 /boot/vmlinuz-$(uname -r)
+
 
 
 

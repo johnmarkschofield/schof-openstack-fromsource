@@ -6,7 +6,7 @@
   - apt: pkg=update-notifier-common
   - name: Upgrade Everything
     apt: upgrade=dist
-  # - apt: pkg=emacs23-nox
+  - apt: pkg=emacs23-nox
   - apt: pkg=curl
   - apt: pkg=ntp
   - apt: pkg=git
@@ -28,12 +28,6 @@
   - name: reboot
     command: /sbin/reboot
 
-  - name: restartnetwork
-    service: name=networking state=restarted
-
-  - name: restartntp
-    service: name=ntp state=restarted
-
   - name: restartmysqld
     service: name=mysql state=restarted
 
@@ -48,9 +42,9 @@
   - copy: src=network_files/network_hosts dest=/etc/hosts
   - hostname: name=network
   - copy: src=network_files/network_interfaces dest=/etc/network/interfaces
-    notify: restartnetwork
+  - service: name=networking state=restarted
   - copy: src=ntp.conf dest=/etc/ntp.conf
-    notify: restartntp
+  - service: name=ntp state=restarted
   - apt: pkg=python-mysqldb
 
 
@@ -59,5 +53,5 @@
   - copy: src=compute01_files/compute_hosts dest=/etc/hosts
   - hostname: name=compute01
   - copy: src=ntp.conf dest=/etc/ntp.conf
-    notify: restartntp
+  - service: name=ntp state=restarted
   - apt: pkg=python-mysqldb

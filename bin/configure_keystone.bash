@@ -4,6 +4,7 @@ set -x
 set -e
 
 export OS_SERVICE_TOKEN=$ADMIN_TOKEN
+export OS_SERVICE_ENDPOINT=http://controller:35357/v2.0
 
 keystone user-create --name=admin --pass=$ADMIN_PASS --email=$ADMIN_EMAIL
 keystone role-create --name=admin

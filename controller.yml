@@ -18,9 +18,10 @@
   - copy: src=controller_files/my.cnf dest=/etc/mysql/my.cnf
     notify: restartmysqld
   - shell: creates=/root/.mysql_step1 /usr/bin/mysql_install_db && touch /root/.mysql_step1
+  - shell: creates=/root/.mysql_step2 mysqladmin -u root password {{MYSQL_ROOT}} && touch /root/.mysql_step2
   - apt: pkg=expect
   - template: src=controller_files/mysql_secure.j2 dest=/root/mysql_secure.sh owner=root group=root mode=0700
-  - shell: creates=/root/.mysql_step2 /root/mysql_secure.sh
+  - shell: creates=/root/.mysql_step3 /root/mysql_secure.sh
   - shell: rm /root/mysql_secure.sh
   - apt: pkg=rabbitmq-server
   - shell: rabbitmqctl change_password guest {{ RABBITMQ_PASS }}
@@ -39,9 +40,10 @@
   - mysql_db: name=keystone login_user=root login_password={{MYSQL_ROOT}}
   - mysql_user: name=keystone host=localhost password={{KEYSTONE_DBPASSWD}} priv=keystone.*:all login_user=root login_password={{MYSQL_ROOT}}
   - mysql_user: name=keystone host='%' password={{KEYSTONE_DBPASSWD}} priv=keystone.*:all login_user=root login_password={{MYSQL_ROOT}}
-  - user: name=keystone 
-  - shell: creates=/root/.keystonedb1 su -s /bin/sh -c "keystone-manage db_sync" keystone && touch /root/.keystonedb1
+  - user: name=keystone
   - file: path=/var/log/keystone state=directory owner=keystone group=keystone mode=0755
+  - service: name=mysql state=restarted
+  - shell: creates=/root/.keystonedb1 su -s /bin/sh -c "keystone-manage db_sync" keystone && touch /root/.keystonedb1
   - copy: src=controller_files/initd_keystone dest=/etc/init.d/keystone owner=root group=root mode=0755
   - service: name=keystone enabled=yes state=restarted
   - cron: name="purge keystone tokens" special_time=hourly user=keystone job="/usr/bin/keystone-manage token_flush >/var/log/keystone/keystone-tokenflush.log 2>&1"
@@ -53,3 +55,5 @@
   handlers:
   - name: keystone
     service: name=keystone state=restarted
+  - name: restartmysqld
+    service: name=mysql state=restarted
