@@ -14,6 +14,7 @@ You should be in a Python virtualenv for all of these steps.
 
 1. source passwords.sh
 2. ansible-playbook -i hosts all.yml
+3. ansible-playbook -i hosts keystone_on_controller.yml
 3. bin/configure_keystone.bash
 4. bin/install_local_clients.bash
 5. ansible-playbook -i hosts glance_on_controller.yml

@@ -9,53 +9,31 @@
     NOVA_PWD: "{{ lookup('env','NOVA_PASS') }}"
 
   tasks:
-    - apt: pkg=nova-compute-qemu
-    - apt: pkg=python-guestfs
-    - shell: dpkg-statoverride  --update --add root root 0644 /boot/vmlinuz-$(uname -r)
+  - apt: update_cache=yes cache_valid_time=21600
+
+  - copy: src=compute01_files/compute_hosts dest=/etc/hosts
+  - hostname: name=compute01
+  - copy: src=ntp.conf dest=/etc/ntp.conf
+  - service: name=ntp state=restarted
+
+  - apt: pkg=python-mysqldb
+
+  - apt: pkg=debconf-utils
+  - shell: executable=/bin/bash debconf-set-selections <<< 'libguestfs0 libguestfs/update-appliance boolean true'
+  - apt: pkg=python-guestfs
+
+  - shell: creates=/root/.dpkg-statoverride dpkg-statoverride  --update --add root root 0644 /boot/vmlinuz-$(uname -r) && touch /root/.dpkg-statoverride
+  - copy: src=compute01_files/statoverride dest=/etc/kernel/postinst.d/statoverride owner=root group=root mode=0755
+
+  - apt: pkg=gcc
+  - apt: pkg=python-dev
+  - apt: pkg=libxml2-dev
+  - apt: pkg=libxslt1-dev
+  - apt: pkg=libffi-dev
+  - command: creates=/root/nova git clone https://github.com/openstack/nova.git /root/nova
+  - command: chdir=/root/nova git checkout stable/icehouse
+  - command: chdir=/root/nova pip install -r requirements.txt
+  - command: chdir=/root/nova python setup.py install
 
 
-
-
-
-
-  # - apt: update_cache=yes cache_valid_time=21600
-  # - command: creates=/root/nova git clone https://github.com/openstack/nova.git /root/nova
-  # - command: chdir=/root/nova git checkout stable/icehouse
-  # - command: chdir=/root/nova pip install -r requirements.txt
-  # - command: chdir=/root/nova python setup.py install
-  # - copy: src=etc/nova dest=/etc
-  # - template: src=controller_files/nova.conf dest=/etc/nova/nova.conf
-  # - user: name=nova
-  # - file: path=/var/log/nova state=directory owner=nova group=nova mode=0755
-  # - file: path=/var/lib/nova state=directory owner=nova group=nova mode=0755
-  # - file: path=/var/lib/nova/volumes state=directory owner=nova group=nova mode=0755
-  # - file: path=/var/lock/nova state=directory owner=nova group=nova mode=0755
-  # - file: state=absent path=/var/lib/nova/nova.sqlite
-  # - mysql_db: name=nova login_user=root login_password={{MYSQL_ROOT}}
-  # - mysql_user: name=nova host=localhost password={{NOVA_DBPWD}} priv=nova.*:all login_user=root login_password={{MYSQL_ROOT}}
-  # - mysql_user: name=nova host='%' password={{NOVA_DBPWD}} priv=nova.*:all login_user=root login_password={{MYSQL_ROOT}}
-  # - shell: creates=/root/.novadb1 su -s /bin/sh -c "nova-manage db sync" nova && touch /root/.novadb1
-
-  # - copy: src=controller_files/sudoers dest=/etc/sudoers owner=root group=root mode=0640
-  # - service: name=sudo state=restarted
-
-  # - copy: src=controller_files/initd_novaapi dest=/etc/init.d/novaapi owner=root group=root mode=0755
-  # - service: name=novaapi enabled=yes state=restarted
-
-  # - copy: src=controller_files/initd_novacert dest=/etc/init.d/novacert owner=root group=root mode=0755
-  # - service: name=novacert enabled=yes state=restarted
-
-  # - copy: src=controller_files/initd_novaconsoleauth dest=/etc/init.d/novaconsoleauth owner=root group=root mode=0755
-  # - service: name=novaconsoleauth enabled=yes state=restarted
-
-  # - copy: src=controller_files/initd_novascheduler dest=/etc/init.d/novascheduler owner=root group=root mode=0755
-  # - service: name=novascheduler enabled=yes state=restarted
-
-  # - copy: src=controller_files/initd_novaconductor dest=/etc/init.d/novaconductor owner=root group=root mode=0755
-  # - service: name=novaconductor enabled=yes state=restarted
-
-  # - copy: src=controller_files/initd_novncproxy dest=/etc/init.d/novncproxy owner=root group=root mode=0755
-  # - service: name=novncproxy enabled=yes state=restarted
-
-  # - service: name=nova-agent enabled=yes state=restarted
 

@@ -1,4 +1,4 @@
-
+---
 - hosts: controller
   vars:
     MYSQL_ROOT: "{{ lookup('env','DB_ROOT') }}"
@@ -24,7 +24,7 @@
   - shell: creates=/root/.mysql_step3 /root/mysql_secure.sh
   - shell: rm /root/mysql_secure.sh
   - apt: pkg=rabbitmq-server
-  - shell: rabbitmqctl change_password guest {{ RABBITMQ_PASS }}
+  - shell: creates=/root/.rabbitmq_pw rabbitmqctl change_password guest {{ RABBITMQ_PASS }} && touch /root/.rabbitmq_pw
   - command: creates=/root/keystone git clone https://github.com/openstack/keystone.git /root/keystone
   - command: chdir=/root/keystone git checkout stable/icehouse
   - apt: pkg=gcc

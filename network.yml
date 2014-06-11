@@ -1,0 +1,10 @@
+---
+- hosts: network
+  tasks:
+  - copy: src=network_files/network_hosts dest=/etc/hosts
+  - hostname: name=network
+  - copy: src=network_files/network_interfaces dest=/etc/network/interfaces
+  - service: name=networking state=restarted
+  - copy: src=ntp.conf dest=/etc/ntp.conf
+  - service: name=ntp state=restarted
+  - apt: pkg=python-mysqldb
