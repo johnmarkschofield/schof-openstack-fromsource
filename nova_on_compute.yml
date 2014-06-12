@@ -35,5 +35,23 @@
   - command: chdir=/root/nova pip install -r requirements.txt
   - command: chdir=/root/nova python setup.py install
 
+  - group: name=nova
+  - user: name=nova groups=nova,libvirtd
+  - file: path=/etc/nova state=directory owner=nova group=nova mode=0755
+  - file: path=/var/log/nova state=directory owner=nova group=nova mode=0755
+  - file: path=/var/lib/nova state=directory owner=nova group=nova mode=0755
+  - file: path=/var/lib/nova/instances state=directory owner=nova group=nova mode=0755
+
+  - template: src=compute01_files/nova.conf dest=/etc/nova/nova.conf
+  - template: src=compute01_files/nova-compute.conf dest=/etc/nova/nova-compute.conf
+
+  - file: path=/var/lib/nova/nova.sqlite state=absent
+
+  - apt: pkg=python-libvirt
+  - service: name=libvirt-bin state=restarted
+
+  - template: src=compute01_files/initd_novacompute dest=/etc/init.d/nova-compute owner=root group=root mode=0755
+  - service: name=nova-compute state=restarted enabled=yes
+
 
 
