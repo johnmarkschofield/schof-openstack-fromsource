@@ -3,6 +3,7 @@ Jinja2==2.7.3
 MarkupSafe==0.23
 PyYAML==3.11
 ansible==1.6.2
+argparse==1.2.1
 cffi==0.8.2
 cliff==1.6.1
 cmd2==0.6.7
